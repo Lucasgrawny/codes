@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="lucas emanuel pereira dos santos">
+    <meta name="description" content="Sistema simples para controle de entradas diárias em dinheiro, cartão e PIX, com registro de quantidades de lanches vendidos.">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Sanctus Panis - Controle de Entradas Diárias</title>
+<style>
+    body {
+        background: #fff3e0; /* Laranja claro para fundo */
+        font-family: Arial, sans-serif;
+        color: #d84315; /* Vermelho escuro para texto principal */
+        margin: 0;
+        padding: 20px;
+    }
+    header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #ffcc80; /* Laranja médio para header */
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
+    }
+    .logo {
+        font-size: 2.5em;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+    .logo-text {
+        font-size: 2em;
+        font-weight: bold;
+        color: #e65100; /* Vermelho escuro para o nome */
+        display: inline-block;
+        vertical-align: middle;
+    }
+    h1, h2 {
+        text-align: center;
+        color: #f57c00; /* Laranja para títulos */
+    }
+    h1 {
+        margin-top: 0;
+    }
+    nav {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    nav a {
+        display: inline-block;
+        margin: 0 5px;
+        padding: 6px 12px;
+        background: #ff9800; /* Laranja para botões */
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    nav a.active, nav a:hover {
+        background: #ef6c00; /* Laranja escuro para hover/active */
+    }
+    .container {
+        max-width: 1100px; /* Aumentado para acomodar novas colunas */
+        margin: 0 auto;
+    }
+    table {
+        margin: 30px auto 10px auto;
+        border-collapse: collapse;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: 0 2px 8px #ffcc80; /* Sombra laranja */
+    }
+    th, td {
+        border: 1px solid #ffcc80; /* Bordas laranja claro */
+        padding: 6px 8px;
+        text-align: center;
+    }
+    th {
+        background: #ff9800; /* Laranja para headers */
+        color: #fff;
+    }
+    tr:nth-child(even) {
+        background: #fff8e1; /* Bege claro para linhas alternadas */
+    }
+    tr:hover {
+        background: #ffecb3; /* Laranja muito claro para hover */
+    }
+    tr.dia-atual {
+        background-color: #e8f5e9 !important; /* Verde claro para o dia atual */
+    }
+    tr.dia-atual:hover {
+        background-color: #c8e6c9 !important; /* Verde mais escuro no hover */
+    }
+    .pontinho {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #4caf50; /* Verde para o pontinho */
+        border-radius: 50%;
+        margin-left: 5px;
+    }
+    input[type="number"] {
+        width: 70px; /* Ajustado para caber melhor */
+        text-align: right;
+        border: 1px solid #ffcc80; /* Borda laranja */
+        border-radius: 3px;
+        padding: 4px;
+        background: #fff8e1;
+    }
+    .total {
+        font-weight: bold;
+        color: #e65100; /* Vermelho escuro para totais */
+        background: #ffecb3; /* Fundo laranja claro */
+    }
+    .hidden {
+        display: none;
+    }
+    .resumo-meses {
+        margin: 0 auto 30px auto;
+        width: 90%;
+        max-width: 600px;
+    }
+    .resumo-meses th, .resumo-meses td {
+        padding: 8px 10px;
+    }
+    .total-mensal {
+        font-size: 1.2em;
+        color: #d84315; /* Vermelho para total mensal */
+    }
+    .data-atual {
+        text-align: center;
+        color: #4caf50;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    /* Responsividade para celular */
+    @media (max-width: 900px) {
+        .container {
+            max-width: 98vw;
+            padding: 0 2vw;
+        }
+        table, thead, tbody, th, td, tr {
+            display: block;
+            width: 100%;
+        }
+        thead {
+            display: none;
+        }
+        table {
+            box-shadow: 0 2px 8px #ffcc80;
+            margin: 20px 0;
+        }
+        tr {
+            margin-bottom: 18px;
+            background: #fff8e1;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px #ffcc80;
+            padding: 10px 0;
+        }
+        td {
+            border: none;
+            border-bottom: 1px solid #ffcc80;
+            position: relative;
+            padding-left: 50%;
+            text-align: left;
+            min-height: 36px;
+            font-size: 1em;
+        }
+        td:last-child {
+            border-bottom: none;
+        }
+        td:before {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 45%;
+            white-space: nowrap;
+            font-weight: bold;
+            color: #f57c00;
+            font-size: 0.98em;
+        }
+        /* Labels para cada coluna */
+        td:nth-child(1):before { content: "Dia da Semana"; }
+        td:nth-child(2):before { content: "Qtd Dogs"; }
+        td:nth-child(3):before { content: "Qtd X Normal"; }
+        td:nth-child(4):before { content: "Qtd X Artesanal"; }
+        td:nth-child(5):before { content: "Dinheiro (R$)"; }
+        td:nth-child(6):before { content: "Cartão Crédito (R$)"; }
+        td:nth-child(7):before { content: "Cartão de Débito (R$)"; }
+        td:nth-child(8):before { content: "PIX (R$)"; }
+        td:nth-child(9):before { content: "Total do Dia (R$)"; }
+        .total-mensal, .total {
+            font-size: 1.1em;
+        }
+        input[type="number"] {
+            width: 90%;
+            font-size: 1em;
+        }
+        .data-atual {
+            font-size: 1.1em;
+        }
+    }
+</style>
+<style> /* --- ESTILO PARA COMPUTADOR --- */
+@media (min-width: 901px) {
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 30px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(255, 152, 0, 0.10);
+    }
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        margin: 30px auto 10px auto;
+        background: #fff;
+        box-shadow: 0 2px 12px #ffcc80;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    th, td {
+        border: 1px solid #ffb74d;
+        padding: 10px 12px;
+        text-align: center;
+        font-size: 1.08em;
+    }
+    th {
+        background: linear-gradient(90deg, #ff9800 80%, #ffe0b2 100%);
+        color: #fff;
+        font-size: 1.1em;
+        border-top: none;
+    }
+    tr:first-child th:first-child {
+        border-top-left-radius: 12px;
+    }
+    tr:first-child th:last-child {
+        border-top-right-radius: 12px;
+    }
+    tr:last-child td:first-child {
+        border-bottom-left-radius: 12px;
+    }
+    tr:last-child td:last-child {
+        border-bottom-right-radius: 12px;
+    }
+    tr:nth-child(even) {
+        background: #fff8e1;
+    }
+    tr:hover {
+        background: #ffecb3;
+        transition: background 0.2s;
+    }
+    .total, .total-mensal {
+        background: #ffe0b2;
+        color: #e65100;
+        font-weight: bold;
+        border-top: 2px solid #ff9800;
+        font-size: 1.12em;
+    }
+    input[type="number"] {
+        width: 80px;
+        padding: 6px 4px;
+        border: 1px solid #ffb74d;
+        border-radius: 5px;
+        background: #fffde7;
+        font-size: 1em;
+        text-align: right;
+        transition: border 0.2s;
+    }
+    input[type="number"]:focus {
+        border: 1.5px solid #f57c00;
+        outline: none;
+        background: #fff3e0;
+    }
+    nav {
+        margin-bottom: 24px;
+    }
+    nav a {
+        margin: 0 7px;
+        padding: 8px 18px;
+        font-size: 1.08em;
+        border-radius: 6px;
+        background: #ff9800;
+        color: #fff;
+        border: 1.5px solid #ffb74d;                         
+    
+        box-shadow: 0 2px 6px #ffe0b2;
+        transition: background 0.2s, color 0.2s;
+    }
+    nav a.active, nav a:hover {
+        background: #e65100;
+        color: #fffde7;
+        border-color: #e65100;
+    }
+    .data-atual {
+        font-size: 1.15em;
+        margin: 18px 0 10px 0;
+        color: #388e3c;
+        background: #e8f5e9;
+        border-radius: 8px;
+        padding: 8px 0;
+        box-shadow: 0 1px 4px #c8e6c9;
+    }
+    .pontinho {
+        width: 10px;
+        height: 10px;
+        margin-left: 8px;
+        background: #388e3c;
+    }
+    .resumo-meses, .resumo-anual {
+        margin: 30px auto 30px auto;
+        width: 60%;
+        min-width: 320px;
+        max-width: 500px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px #ffcc80;
+        background: #fffde7;
+    }
+    .resumo-meses th, .resumo-meses td,
+    .resumo-anual th, .resumo-anual td {
+        padding: 10px 12px;
+        border: 1px solid #ffb74d;
+        font-size: 1.08em;
+    }
+    .resumo-meses th, .resumo-anual th {
+        background: #ff9800;
+        color: #fff;
+    }
+    .resumo-meses td, .resumo-anual td {
+        background: #fffde7; /* background color for table cells */
+    }
+    .resumo-meses tr:last-child td, .resumo-anual tr:last-child td {
+        border-bottom: none;
+    }
+} </style>
+    <script>
+        const meses = [
+            "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+            "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+        ];
+        const nomesMeses = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ];
+        const iniciais = [
+            "J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"
+        ];
+        const nomesDiasSemana = [
+            "Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", 
+            "Quinta-feira", "Sexta-feira", "Sábado"
+        ];
+        const diasPorMes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // Não considera ano bissexto para simplicidade
+        diasPorMes[1] = new Date(2025, 2, 0).getDate(); // Ajusta fevereiro para ano atual
+        // Data atual do sistema (calendário virtual)
+        let dataHoje = new Date();
+        let diaHoje = dataHoje.getDate();
+        let mesHojeIndex = dataHoje.getMonth(); // 0-based
+        let mesHoje = meses[mesHojeIndex];
+
+        // Função para salvar dados no localStorage
+        function salvarDados(mes, dados) {
+            localStorage.setItem(`entradas-${mes}`, JSON.stringify(dados));
+            atualizarResumoMensal();
+        }
+
+        // Função para carregar dados do localStorage
+        function carregarDados(mes) {
+            const dadosSalvos = localStorage.getItem(`entradas-${mes}`);
+            return dadosSalvos ? JSON.parse(dadosSalvos) : {};
+        }
+
+        // Função para calcular total do dia (apenas financeiro)
+        function calcularTotalDia(dinheiro, cartao, pix) {
+            return (parseFloat(dinheiro) || 0) + (parseFloat(cartao) || 0) + (parseFloat(pix) || 0);
+        }
+
+        // Função para calcular total mensal (apenas financeiro)
+        function calcularTotalMensal(dados, mesIndex) {
+            let total = 0;
+            const numDias = diasPorMes[mesIndex];
+            for (let dia = 1; dia <= numDias; dia++) {
+                const entrada = dados[dia] || {dogs: 0, xNormal: 0, xArtesanal: 0, dinheiro: 0, cartao: 0, pix: 0};
+                total += calcularTotalDia(entrada.dinheiro, entrada.cartao, entrada.pix);
+            }
+            return total;
+        }
+
+        // Função para obter nome do dia da semana para uma data específica (assume ano atual)
+        function obterNomeDiaSemana(mesIndex, dia) {
+            const anoAtual = dataHoje.getFullYear();
+            const data = new Date(anoAtual, mesIndex, dia);
+            return nomesDiasSemana[data.getDay()];
+        }
+
+        // Função para preencher/atualizar tabela de um mês
+        function preencherTabela(mes) {
+            const tabela = document.getElementById(`tabela-${mes}`);
+            const tbody = tabela.querySelector('tbody');
+            tbody.innerHTML = ''; // Limpa a tabela
+            const dados = carregarDados(mes);
+            const mesIndex = meses.indexOf(mes);
+            const numDias = diasPorMes[mesIndex];
+            const ehMesAtual = (mesIndex === mesHojeIndex);
+
+            for (let dia = 1; dia <= numDias; dia++) {
+                const nomeDiaSemana = obterNomeDiaSemana(mesIndex, dia);
+                const entrada = dados[dia] || {dogs: 0, xNormal: 0, xArtesanal: 0, dinheiro: 0, cartao: 0, pix: 0};
+                const totalDia = calcularTotalDia(entrada.dinheiro, entrada.cartao, entrada.pix);
+                const ehDiaAtual = ehMesAtual && (dia === diaHoje);
+                const classeLinha = ehDiaAtual ? 'dia-atual' : '';
+                const pontinho = ehDiaAtual ? '<span class="pontinho"></span>' : '';
+                const row = tbody.insertRow();
+                if (classeLinha) row.className = classeLinha;
+                row.innerHTML = `
+                    <td>${nomeDiaSemana} ${dia}${pontinho}</td>
+                    <td><input type="number" id="dogs-${mes}-${dia}" value="${entrada.dogs}" min="0" step="1" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td><input type="number" id="xNormal-${mes}-${dia}" value="${entrada.xNormal}" min="0" step="1" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td><input type="number" id="xArtesanal-${mes}-${dia}" value="${entrada.xArtesanal}" min="0" step="1" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td><input type="number" id="dinheiro-${mes}-${dia}" value="${entrada.dinheiro}" min="0" step="0.01" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td><input type="number" id="cartaoCredito-${mes}-${dia}" value="${entrada.cartaoCredito || 0}" min="0" step="0.01" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td><input type="number" id="cartaoDebito-${mes}-${dia}" value="${entrada.cartaoDebito || 0}" min="0" step="0.01" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td><input type="number" id="pix-${mes}-${dia}" value="${entrada.pix}" min="0" step="0.01" onchange="atualizarDia('${mes}', ${dia})"></td>
+                    <td id="total-${mes}-${dia}" class="total">${totalDia.toFixed(2)}</td>
+                `;
+            }
+
+            // Adiciona linha de total mensal (apenas financeiro)
+            const totalMensal = calcularTotalMensal(dados, mesIndex);
+            const rowTotal = tbody.insertRow();
+            rowTotal.innerHTML = `
+                <td colspan="7"><strong>Total Mensal</strong></td>
+                <td id="total-mensal-${mes}" class="total-mensal">R$ ${totalMensal.toFixed(2)}</td>
+            `;
+
+            // Atualiza indicador de data atual se for o mês atual
+            atualizarIndicadorDataAtual(mes);
+        }
+
+        // Função para atualizar um dia específico
+        function atualizarDia(mes, dia) {
+            // Captura quantidades
+            const dogs = parseInt(document.getElementById(`dogs-${mes}-${dia}`).value) || 0;
+            const xNormal = parseInt(document.getElementById(`xNormal-${mes}-${dia}`).value) || 0;
+            const xArtesanal = parseInt(document.getElementById(`xArtesanal-${mes}-${dia}`).value) || 0;
+            
+            // Captura financeiro
+            const dinheiro = parseFloat(document.getElementById(`dinheiro-${mes}-${dia}`).value) || 0;
+            const cartaoCredito = parseFloat(document.getElementById(`cartaoCredito-${mes}-${dia}`).value) || 0;
+            const cartaoDebito = parseFloat(document.getElementById(`cartaoDebito-${mes}-${dia}`).value) || 0;
+            const pix = parseFloat(document.getElementById(`pix-${mes}-${dia}`).value) || 0;
+            
+            const total = calcularTotalDia(dinheiro, cartaoCredito + cartaoDebito, pix);
+            document.getElementById(`total-${mes}-${dia}`).textContent = total.toFixed(2);
+
+            // Atualiza dados e salva
+            const dados = carregarDados(mes);
+            dados[dia] = {dogs, xNormal, xArtesanal, dinheiro, cartaoCredito, cartaoDebito, pix};
+            salvarDados(mes, dados);
+
+            // Atualiza total mensal
+            const mesIndex = meses.indexOf(mes);
+            const totalMensal = calcularTotalMensal(dados, mesIndex);
+            document.getElementById(`total-mensal-${mes}`).textContent = `R$ ${totalMensal.toFixed(2)}`;
+        }
+
+        // Função para atualizar resumo de todos os meses
+        function atualizarResumoMensal() {
+            const resumo = document.getElementById('resumo-meses');
+            if (!resumo) return;
+            const tbody = resumo.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            meses.forEach((mes, index) => {
+                const dados = carregarDados(mes);
+                const total = calcularTotalMensal(dados, index);
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${iniciais[index]}</td>
+                    <td>R$ ${total.toFixed(2)}</td>
+                `;
+            });
+        }
+
+        // Função para mostrar mês
+        function mostrarMes(mes) {
+            meses.forEach(function(m) {
+                document.getElementById(`tabela-${m}`).classList.add("hidden");
+                document.getElementById(`link-${m}`).classList.remove("active");
+            });
+            document.getElementById(`tabela-${mes}`).classList.remove("hidden");
+            document.getElementById(`link-${mes}`).classList.add("active");
+            preencherTabela(mes); // Preenche/atualiza a tabela ao mostrar
+        }
+
+        // Função para atualizar indicador de data atual
+        function atualizarIndicadorDataAtual(mes) {
+            const mesIndex = meses.indexOf(mes);
+            const ehMesAtual = (mesIndex === mesHojeIndex);
+            let dataAtualDiv = document.querySelector('.data-atual');
+            if (!dataAtualDiv) {
+                dataAtualDiv = document.createElement('div');
+                dataAtualDiv.className = 'data-atual';
+                document.querySelector('.container').appendChild(dataAtualDiv);
+            }
+            if (ehMesAtual) {
+                const nomeDiaSemanaHoje = nomesDiasSemana[dataHoje.getDay()];
+                const nomeMesHoje = nomesMeses[mesHojeIndex];
+                dataAtualDiv.innerHTML = `Hoje é <strong>${nomeDiaSemanaHoje}, ${diaHoje} de ${nomeMesHoje}</strong>`;
+                dataAtualDiv.style.display = 'block';
+            } else {
+                dataAtualDiv.style.display = 'none';
+            }
+        }
+
+        // Inicialização
+        window.onload = function() {
+            // Cria links de navegação
+            const nav = document.querySelector('nav');
+            meses.forEach((mes, index) => {
+                const link = document.createElement('a');
+                link.id = `link-${mes}`;
+                link.href = '#';
+                link.textContent = iniciais[index];
+                link.onclick = function(e) { e.preventDefault(); mostrarMes(mes); };
+                nav.appendChild(link);
+            });
+
+            // Cria tabelas para cada mês
+            const container = document.querySelector('.container');
+            meses.forEach((mes, index) => {
+                const tabelaDiv = document.createElement('div');
+                tabelaDiv.id = `tabela-${mes}`;
+                tabelaDiv.className = 'hidden';
+                tabelaDiv.innerHTML = `
+                    <h2>Entradas de ${nomesMeses[index]}</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dia da Semana</th>
+                                <th>Qtd Dogs</th>
+                                <th>Qtd X Normal</th>
+                                <th>Qtd X Artesanal</th>
+                                <th>Dinheiro (R$)</th>
+                                <th>Cartão Crédito (R$)</th>
+                                <th>Cartão de Débito (R$)</th>
+                                <th>PIX (R$)</th>
+                                <th>Total do Dia (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                `;
+                container.appendChild(tabelaDiv);
+            });
+
+            // Cria tabela de resumo mensal
+            const resumoDiv = document.createElement('div');
+            resumoDiv.innerHTML = `
+                <h2>Resumo Anual de Entradas (Financeiro)</h2>
+                <table id="resumo-meses" class="resumo-meses">
+                    <thead>
+                        <tr>
+                            <th>Mês</th> <!--- Mês representado pela inicial --->
+                            <th>Total (R$)</th> <!--- Total financeiro do mês --->
+                        </tr>
+                    </thead>
+                    <tbody></tbody> <!--- Corpo da tabela será preenchido via JS --->
+                </table>
+             `;
+              container.appendChild(resumoDiv);
+            // Cria tabela de resumo anual
+            const resumoAnualDiv = document.createElement('div');
+            resumoAnualDiv.innerHTML = `
+                <h2>Resumo Anual de Entradas (Financeiro)</h2>
+                <table id="resumo-anual" class="resumo-anual">
+                    <thead>
+                        <tr>
+                            <th>Anual</th>
+                            <th>Total (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Total Anual</strong></td>
+                            <td id="total-anual">R$ 0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            container.appendChild(resumoAnualDiv);
+
+            // Função para atualizar o total anual
+            function atualizarResumoAnual() {
+                let totalAnual = 0;
+                meses.forEach((mes, index) => {
+                    const dados = carregarDados(mes);
+                    totalAnual += calcularTotalMensal(dados, index);
+                });
+                const totalAnualTd = document.getElementById('total-anual');
+                if (totalAnualTd) {
+                    totalAnualTd.textContent = `R$ ${totalAnual.toFixed(2)}`;
+                }
+            }
+
+            // Atualize o resumo anual sempre que o resumo mensal for atualizado
+            const originalAtualizarResumoMensal = atualizarResumoMensal;
+            atualizarResumoMensal = function() {
+                originalAtualizarResumoMensal();
+                atualizarResumoAnual();
+            };
+
+            // Mostra o mês atual por padrão (se for um dos meses), senão janeiro
+            const mesInicial = mesHoje;
+            mostrarMes(mesInicial);
+            atualizarResumoMensal();
+        }
+    </script>
+</head>
+<body>
+    <header>
+<body>
+    <div class="container-fluid"></div>
+    <div class="container">
+        <header>
+            <span class="logo">🥪</span>
+            <span class="logo-text">Sanctus Panis</span>
+        </header>
+        <h1>Controle de Entradas Diárias - Dinheiro, Cartão e PIX e Quantidades de Lanches)</h1>
+        <nav>
+            <!-- Links serão criados via JS -->
+        </nav>
+        <!-- Tabelas serão criadas via JS -->
+    </div>
+</body>
+</html>
